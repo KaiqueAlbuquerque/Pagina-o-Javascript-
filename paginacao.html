@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div id="inputPalavraChave">
+        &nbsp;&nbsp;&nbsp;&nbsp; pesquisa por palavra chave:
+        <input type="text" id="palavraChave">
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Nome</th>
+            </tr>
+        </thead>
+        <tbody id="corpo">
+            
+        </tbody>
+    </table>
+    <div id="paginacao">
+        <p>
+            <img src="duplaEsquerda.jpg" id="duplaEsquerda" alt="Seta dupla Esquerda" height="15" width="15" style="visibility: hidden; float: left; padding-right: 5px">&nbsp;&nbsp;
+            <img src="esquerda.png" id="setaEsquerda" alt="Seta simples Esquerda" height="15" width="15" style="visibility: hidden; float: left; padding-right: 10px;">&nbsp;&nbsp;
+            
+            <span style="float: left;">&nbsp;&nbsp;página:&nbsp;</span><span id="qtdePaginas" style="float: left;"></span>
+            
+            <img src="direita.png" id="setaDireita" alt="Seta simples Direita" height="15" width="15" style="visibility: hidden; float: left; padding-left: 10px;">&nbsp;&nbsp;
+            <img src="duplaDireita.jpg" id="duplaDireita" alt="Seta dupla Direita" height="15" width="15" style="visibility: hidden; float: left; padding-left: 5px;">&nbsp;&nbsp;
+            
+            &nbsp;&nbsp;&nbsp;&nbsp; quantidade por página:
+            <select id="quantidadePorPagina">            
+                <option value="10">10</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>            
+        </p>
+    </div>
+
+    <style>
+        #inputPalavraChave{
+            text-align: center
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", init);
+
+        function init()
+        {
+            document.getElementById("setaDireita").addEventListener("click", proximaPagina);
+            document.getElementById("duplaDireita").addEventListener("click", ultimaPagina);
+            document.getElementById("setaEsquerda").addEventListener("click", paginaAnterior);
+            document.getElementById("duplaEsquerda").addEventListener("click", primeiraPagina);  
+            document.getElementById("palavraChave").addEventListener("keyup", digitou);
+        
+            var x = [];
+            var y = [];
+            var qtdePaginas;
+            var paginas = 10;
+            var pagina = 1;
+            var textoDigitado = "";
+
+            for (let index = 0; index < 100; index++) 
+            {
+                var objeto = {"nome":"kaique" + index}
+                x.push(objeto);            
+            }
+
+            resultado = listItems(x,pagina,paginas);
+            document.getElementById("corpo").innerHTML = "";
+            colocaNaTabela(resultado);
+
+            var items = document.getElementById('quantidadePorPagina'); 
+            items.addEventListener('change', function(e)
+            {
+                paginas = e.target.value;
+
+                if(textoDigitado == "")
+                {
+                    qtdePaginas = Math.ceil( x.length / paginas );
+                    if(pagina > qtdePaginas)
+                    {
+                        pagina = qtdePaginas;
+                    }
+                    resultado = listItems(x,pagina,paginas);                    
+                }
+                else
+                {
+                    qtdePaginas = Math.ceil( y.length / paginas );
+                    if(pagina > qtdePaginas)
+                    {                        
+                        pagina = qtdePaginas;
+                    }
+                    resultado = listItems(y,pagina,paginas);                    
+                }
+                document.getElementById("corpo").innerHTML = "";
+                colocaNaTabela(resultado);
+            });
+
+            function digitou()
+            {   
+                textoDigitado = document.getElementById("palavraChave").value;
+                y = [];
+                
+                for(let i = (x.length - 1); i > 0; i--)
+                {
+                    if(x[i]["nome"].includes(textoDigitado))
+                    {
+                        y.unshift(x[i]);
+                    }
+                }
+
+                qtdePaginas = Math.ceil( y.length / paginas );
+                if(pagina > qtdePaginas)
+                {                    
+                    pagina = qtdePaginas;
+                }
+                resultado = listItems(y,pagina,paginas);
+                document.getElementById("corpo").innerHTML = "";
+                colocaNaTabela(resultado);
+            }
+
+            function criaResultado()
+            {
+                if(textoDigitado == "")
+                {
+                    resultado = listItems(x,pagina,paginas);
+                }
+                else
+                {
+                    resultado = listItems(y,pagina,paginas);
+                }                
+                document.getElementById("corpo").innerHTML = "";
+                colocaNaTabela(resultado);
+            }
+
+            function proximaPagina()
+            {          
+                pagina = pagina + 1;
+                criaResultado();
+            }
+
+            function paginaAnterior()
+            {
+                pagina = pagina - 1;
+                criaResultado();
+            }
+
+            function ultimaPagina()
+            {
+                totalPaginas = Math.ceil( x.length / paginas );
+                pagina = totalPaginas;
+                criaResultado();
+            }
+
+            function primeiraPagina()
+            {
+                pagina = 1;
+                criaResultado();
+            }
+                    
+            function colocaNaTabela(items)
+            {            
+                let corpoTabela = "";
+                var cTabela = document.getElementById("corpo");
+
+                for (let index = 0; index < items.length; index++) 
+                {            
+                    var tr = document.createElement("tr");
+                    var td = document.createElement("td");
+                    td.innerHTML = items[index]["nome"];
+                    tr.appendChild(td);
+                    cTabela.appendChild(tr);          
+                }       
+            }
+
+            function listItems(items, pageActual, limitItems)
+            {
+                let result = [];
+                let totalPage = Math.ceil( items.length / limitItems );
+                let count = ( pageActual * limitItems ) - limitItems;
+                let delimiter = parseInt(count) + parseInt(limitItems);
+                var numerosPagina = "";
+                
+                // ----------------------------Esse jeito é para fazer a paginação do google. 1 2 3 4 5 6 7-------------------------
+                /*for(let i=1; i<=totalPage; i++)
+                {
+                    numerosPagina =  numerosPagina + " " + i;
+                }
+                
+                document.getElementById("qtdePaginas").innerHTML = numerosPagina;
+                */         
+                
+                if(pageActual > 1)
+                {
+                    document.getElementById("setaEsquerda").style.visibility = "visible";
+                    document.getElementById("duplaEsquerda").style.visibility = "visible";
+                }
+                else
+                {
+                    document.getElementById("setaEsquerda").style.visibility = "hidden";
+                    document.getElementById("duplaEsquerda").style.visibility = "hidden";
+                }
+
+                if(totalPage > 1)
+                {
+                    document.getElementById("setaDireita").style.visibility = "visible";
+                    document.getElementById("duplaDireita").style.visibility = "visible";
+                }
+                else
+                {
+                    document.getElementById("setaDireita").style.visibility = "hidden";
+                    document.getElementById("duplaDireita").style.visibility = "hidden";
+                }
+
+                if(pageActual == totalPage)
+                {
+                    document.getElementById("setaDireita").style.visibility = "hidden";
+                    document.getElementById("duplaDireita").style.visibility = "hidden";
+                }
+                else
+                {
+                    document.getElementById("setaDireita").style.visibility = "visible";
+                    document.getElementById("duplaDireita").style.visibility = "visible";
+                }
+
+                document.getElementById("qtdePaginas").innerHTML = " " + pageActual + " de " + totalPage + " ";
+                
+                if(pageActual <= totalPage)
+                {
+                    for(let i=count; i<delimiter; i++)
+                    {
+                        if(items[i] != null)
+                        {
+                            result.push(items[i]);
+                        }
+                        count++;
+                    }
+                }
+                return result;
+            }
+        }
+    </script>
+</body>
+</html>
